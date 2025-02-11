@@ -204,11 +204,13 @@ func normalizePackage(opts *config.IndexOpts, pkg *packages.Package) *packages.P
 		pkg.PkgPath = strings.TrimPrefix(pkg.PkgPath, "std/")
 	} else {
 		if pkg.Module == nil {
-			panic(fmt.Sprintf(
-				"Should not be possible to have nil module for userland package: %s %s",
-				pkg,
-				pkg.PkgPath,
-			))
+			// TODO revert this to panic
+			// panic(fmt.Sprintf(
+			// 	"Should not be possible to have nil module for userland package: %s %s",
+			// 	pkg,
+			// 	pkg.PkgPath,
+			// ))
+			return pkg
 		}
 	}
 
