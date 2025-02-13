@@ -25,9 +25,11 @@ type IndexOpts struct {
 
 	// Package patterns to index
 	PackagePatterns []string
+
+	BuildTags []string
 }
 
-func New(ModuleRoot, ModuleVersion, ModulePath, GoStdlibVersion string, IsIndexingStdlib bool, SkipImplementations bool, SkipTests bool, PackagePatterns []string) IndexOpts {
+func New(ModuleRoot, ModuleVersion, ModulePath, GoStdlibVersion string, IsIndexingStdlib bool, SkipImplementations bool, SkipTests bool, PackagePatterns []string, BuildTags []string) IndexOpts {
 	ModuleRoot, err := filepath.Abs(ModuleRoot)
 	if err != nil {
 		panic(err)
@@ -46,5 +48,6 @@ func New(ModuleRoot, ModuleVersion, ModulePath, GoStdlibVersion string, IsIndexi
 		IsIndexingStdlib:      IsIndexingStdlib,
 		PackagePatterns:       PackagePatterns,
 		IsGoPackagesDriverSet: isGoPackagesDriverSet,
+		BuildTags:             BuildTags,
 	}
 }

@@ -29,11 +29,16 @@ var loadMode = packages.NeedDeps |
 var Config = &packages.Config{}
 
 func getConfig(root string, opts config.IndexOpts) *packages.Config {
+	tags := strings.Join(opts.BuildTags, " ")
+
 	// TODO: Hacks to get the config out...
 	Config = &packages.Config{
 		Mode: loadMode,
 		Dir:  root,
 		Logf: output.Logf,
+		BuildFlags: []string{
+			"-tags=" + tags,
+		},
 
 		// Only load tests for the current project.
 		// This greatly reduces memory usage when loading dependencies

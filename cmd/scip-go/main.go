@@ -8,10 +8,12 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/alecthomas/kingpin"
 	"github.com/charmbracelet/log"
 	"github.com/pkg/profile"
+	"github.com/sourcegraph/scip-go/internal/buildtags"
 	"github.com/sourcegraph/scip-go/internal/command"
 	"github.com/sourcegraph/scip-go/internal/config"
 	"github.com/sourcegraph/scip-go/internal/git"
@@ -140,7 +142,17 @@ func mainErr() error {
 		log.Info("Skipping tests")
 	}
 
-	options := config.New(moduleRoot, moduleVersion, modulePath, goVersion, isStdLib, skipImplementations, skipTests, packagePatterns)
+	// perf test
+	start := time.Now()
+	allTags, err := buildtags.ExtractBuildTagsFromDir(moduleRoot)
+
+	fmt.Println("Time taken to extract build tags: ", time.Since(start))
+
+	if err != nil {
+		return fmt.Errorf("failed to extract build tags: %v", err)
+	}
+
+	options := config.New(moduleRoot, moduleVersion, modulePath, goVersion, isStdLib, skipImplementations, skipTests, packagePatterns, allTags)
 
 	if strings.HasPrefix(scipCommand, "list-packages") {
 		var filter string
