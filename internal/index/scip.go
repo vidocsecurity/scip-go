@@ -87,6 +87,7 @@ func ListMissing(opts config.IndexOpts) (missing []string, err error) {
 }
 
 func Index(writer func(proto.Message), opts config.IndexOpts) error {
+	log.Info("Indexing", "opts", opts)
 	// Emit Metadata.
 	//   NOTE: Must be the first field emitted
 	writer(&scip.Metadata{
@@ -102,11 +103,14 @@ func Index(writer func(proto.Message), opts config.IndexOpts) error {
 
 	pkgs, allPackages, err := loader.LoadPackages(opts, opts.ModuleRoot)
 	if err != nil {
+		log.Error("Failed to load packages", "error", err)
 		return err
 	}
 
+	log.Info("Indexer visiting packages", "pkgs", pkgs, "allPackages", allPackages)
 	pathToDocuments, globalSymbols := indexVisitPackages(opts, pkgs, allPackages)
 
+	log.Info("Got pathToDocuments", "count", len(pathToDocuments), "globalSymbols", globalSymbols)
 	if !opts.SkipImplementations {
 		impls.AddImplementationRelationships(pkgs, allPackages, globalSymbols)
 	}
@@ -128,6 +132,7 @@ func Index(writer func(proto.Message), opts config.IndexOpts) error {
 			for _, f := range pkg.Syntax {
 				doc := pathToDocuments[pkg.Fset.File(f.Package).Name()]
 				if doc == nil {
+					log.Info("Document not found", "path", pkg.Fset.File(f.Package).Name())
 					continue
 				}
 
@@ -147,6 +152,7 @@ func Index(writer func(proto.Message), opts config.IndexOpts) error {
 				// Traverse the file
 				ast.Walk(visitor, f)
 
+				log.Info("Writing document", "path", pkg.Fset.File(f.Package).Name())
 				// Write the document
 				writer(visitor.ToScipDocument())
 			}
@@ -155,6 +161,7 @@ func Index(writer func(proto.Message), opts config.IndexOpts) error {
 		}
 	}()
 
+	log.Info("Visiting Project Files: ", "count", pkgLen)
 	output.WithProgressParallel(&wg, "Visiting Project Files: ", &count, uint64(pkgLen))
 
 	return nil
@@ -184,9 +191,9 @@ func indexVisitPackages(
 
 		for _, pkgID := range lookupIDs {
 			pkg := pkgLookup[pkgID]
-			log.Debug("Visiting package", "path", pkg.PkgPath)
+			log.Info("Visiting package", "path", pkg.PkgPath)
 			visitors.VisitPackageSyntax(opts.ModuleRoot, pkg, pathToDocuments, globalSymbols)
-
+			log.Info("Visited package", "path", pkg.PkgPath)
 			// Handle that packages can have many files for one package.
 			// This finds the "definitive" package declaration
 			pkgDeclaration, err := findBestPackageDefinitionPath(pkg)

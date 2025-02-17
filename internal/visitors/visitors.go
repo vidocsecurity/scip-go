@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/charmbracelet/log"
 	"github.com/sourcegraph/scip-go/internal/document"
 	"github.com/sourcegraph/scip-go/internal/handler"
 	"github.com/sourcegraph/scip-go/internal/lookup"
@@ -21,9 +22,11 @@ func VisitPackageSyntax(
 	globalSymbols *lookup.Global,
 ) {
 	pkgSymbols := lookup.NewPackageSymbols(pkg)
+
+	log.Info("Visiting package syntax", "syntax", len(pkg.Syntax))
 	// Iterate over all the files, collect any global symbols
 	for _, f := range pkg.Syntax {
-
+		log.Info("Visiting file", "path", pkg.Fset.File(f.Package).Name())
 		abs := pkg.Fset.File(f.Package).Name()
 		relative, _ := filepath.Rel(moduleRoot, abs)
 

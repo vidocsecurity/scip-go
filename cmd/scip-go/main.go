@@ -252,6 +252,7 @@ func mainErr() error {
 
 	if err := index.Index(writer, options); err != nil {
 		removeOutFileIfPresent()
+		log.Error("Failed to index", "error", err)
 		return err
 	}
 
