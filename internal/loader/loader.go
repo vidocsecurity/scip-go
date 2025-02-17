@@ -39,7 +39,6 @@ func getConfig(root string, opts config.IndexOpts) *packages.Config {
 		BuildFlags: []string{
 			"-tags=" + tags,
 		},
-
 		// Only load tests for the current project.
 		// This greatly reduces memory usage when loading dependencies
 		Tests: !opts.SkipTests,
@@ -116,8 +115,11 @@ func LoadPackages(
 		}
 		pkgs, err := packages.Load(cfg, patterns...)
 		if err != nil {
+			log.Error("packages.Load", "error", err)
 			return err
 		}
+
+		log.Info("Loaded packages", "count", len(pkgs), "pkgs", pkgs)
 
 		for _, pkg := range pkgs {
 			addImportsToPkgs(pkgLookup, &opts, pkg)
@@ -215,6 +217,13 @@ func normalizePackage(opts *config.IndexOpts, pkg *packages.Package) *packages.P
 			// 	pkg,
 			// 	pkg.PkgPath,
 			// ))
+
+			// This is a hack to get the indexer to work with non-module packages
+			pkg.Module = &packages.Module{
+				Path:    ".",
+				Version: ".",
+			}
+
 			return pkg
 		}
 	}
